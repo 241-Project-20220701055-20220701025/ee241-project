@@ -1,0 +1,54 @@
+//in order to creating a air conditioning automation system verilog code down below can be used with proper insturments of measurement and a fpga board
+module AC_Automation(
+    input [7:0] temperature, // 8-bit temperature input from sensor
+    input [1:0] mode, // 2-bit mode input (00=Off, 01=Fan, 10=Cool)
+    output reg ac_on, // AC on/off control
+    output reg [1:0] fan_speed // Fan speed control: 00=Low, 01=Med, 10=High
+);
+
+// Define temperature threshold and fan speed ranges
+parameter TEMP_THRESHOLD = 25; // Temperature threshold for AC to turn on
+parameter LOW_SPEED_MAX = 22; // Max temp for low speed
+parameter MED_SPEED_MAX = 30; // Max temp for medium speed
+
+always @(*) begin
+    // Default states
+    ac_on = 0;
+    fan_speed = 2'b00; // Low speed by default
+
+    case (mode)
+        2'b00: begin // Off mode
+            ac_on = 0;
+            fan_speed = 2'b00; // Fan is off
+        end
+        2'b01: begin // Fan mode
+            ac_on = 0;
+            if (temperature < LOW_SPEED_MAX)
+                fan_speed = 2'b00; // Low speed
+            else if (temperature <= MED_SPEED_MAX)
+                fan_speed = 2'b01; // Medium speed
+            else
+                fan_speed = 2'b10; // High speed
+        end
+        2'b10: begin // Cool mode
+            if (temperature >= TEMP_THRESHOLD)
+                ac_on = 1; // Turn on AC
+            else
+                ac_on = 0; // Turn off AC
+
+            // Set fan speed based on temperature
+            if (temperature < LOW_SPEED_MAX)
+                fan_speed = 2'b00; // Low speed
+            else if (temperature <= MED_SPEED_MAX)
+                fan_speed = 2'b01; // Medium speed
+            else
+                fan_speed = 2'b10; // High speed
+        end
+        default: begin
+            ac_on = 0;
+            fan_speed = 2'b00; // Default to off state
+        end
+    endcase
+end
+
+endmodule
